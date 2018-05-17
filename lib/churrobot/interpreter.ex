@@ -9,30 +9,45 @@ defmodule Churrobot.Interpreter do
     else
       {:ignore}
     end
-    # Counter.credit(id, 1)
   end
+
   def interpret(_, _), do: {:ignore}
 
   defp extract(%{text: text}, %{me: %{id: id}}) do
-    text
-    |> text_without_my_mention(id)
+    ~r/\<\@#{id}\>/
+    |> Regex.replace(text, "", global: false)
+    |> String.trim()
   end
+
+  defp inflect(word, number), do: Inflex.inflect(word, number)
 
   defp mentions_me?(%{text: text}, %{me: %{id: id}}) do
     Regex.match?(~r/#{id}/, text)
   end
 
+  defp mentions_me?(_, _), do: false
+
   defp perform("help", _) do
-    {:ok, ~s"""
-    `show all` - show everyone's churros
-    `show me`, `show` - show your own churros
-    `show @user` - show a specific user's churros
-    `give @user 1` - give specific user 1 churro
-    """}
+    {:ok,
+     ~s"""
+     `show all` - show everyone's churros
+     `show me`, `show` - show your own churros
+     `show @user` - show a specific user's churros
+     `give @user 1` - give specific user 1 churro
+     """}
   end
 
   defp perform("show all", _) do
-    {:ok, "Show everything!"}
+    text =
+      Counter.get_all()
+      |> Enum.map(fn {k, v} -> "<@#{k}> has #{v} #{inflect("churro", v)}" end)
+      |> Enum.join("\n")
+
+    if "" == text do
+      {:ok, "Nobody has any churros!"}
+    else
+      {:ok, text}
+    end
   end
 
   defp perform("show me", message) do
@@ -43,25 +58,26 @@ defmodule Churrobot.Interpreter do
     {:ok, "Show stuff for <@#{user}>!"}
   end
 
-  defp perform("give" <> rest, _) do
+  defp perform("give" <> rest, %{user: user}) do
     ~r/\<\@(?<id>\w+)\>\s+(?<amount>\d+)/
     |> Regex.named_captures(rest)
-    |> perform_give
+    |> perform_give(user)
   end
 
   defp perform(command, _) do
     {:ok, "I don't know what '#{command}' means 🤷‍♂️"}
   end
 
-  defp perform_give(%{"id" => who, "amount" => amount}) do
-    result = Counter.credit(who, String.to_integer(amount))
-    {:ok, "I gave <@#{who}> #{amount} churro(s), they have #{result}!"}
-  end
-  defp perform_give(nil), do: {:ok, "Huh? Try `give @user 1`"}
+  defp perform_give(%{"id" => to, "amount" => amount}, from) do
+    if from == to do
+      {:ok, "Hey look, <@#{from}> tried to give themself churros!"}
+    else
+      result = Counter.credit(to, String.to_integer(amount))
 
-  defp text_without_my_mention(text, id) do
-    ~r/\<\@#{id}\>/
-    |> Regex.replace(text, "")
-    |> String.trim
+      {:ok,
+       "<@#{from}> gave <@#{to}> #{amount} #{inflect("churro", result)}, they now have #{result}!"}
+    end
   end
+
+  defp perform_give(nil, _), do: {:ok, "Huh? Try `give @user 1`"}
 end

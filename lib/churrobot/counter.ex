@@ -4,7 +4,6 @@ defmodule Churrobot.Counter do
   ## Client API
 
   def start_link(initial \\ %{}) do
-    IO.inspect(initial)
     GenServer.start_link(__MODULE__, initial, name: __MODULE__)
   end
 
