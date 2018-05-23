@@ -22,8 +22,9 @@ defmodule Churrobot.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:inflex, "~> 1.10.0"},
-      {:slack, "~> 0.12.0"}
+      {:ecto, "~> 2.2"},
+      {:inflex, "~> 1.10"},
+      {:slack, "~> 0.12"}
     ]
   end
 end
