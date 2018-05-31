@@ -109,6 +109,8 @@ defmodule Churrobot.InterpreterTest do
     assert {:ok, ^expected} = result
   end
 
+  test "give command with 0 amount"
+
   test "give command multiple times", %{message: message, slack: slack} do
     message = %{message | text: "<@BOT> give <@OTHER> 25"}
     Interpreter.interpret(message, slack)

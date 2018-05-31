@@ -1,7 +1,7 @@
 defmodule Churrobot.Schemas do
   import Ecto.Query, warn: false
   alias Churrobot.Repo
-  alias Churrobot.Schemas.{Counts, History}
+  alias Churrobot.Schemas.Counts
 
   def get_all_counts do
     Repo.all(Counts)
