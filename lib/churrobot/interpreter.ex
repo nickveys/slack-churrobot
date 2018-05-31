@@ -1,5 +1,7 @@
 defmodule Churrobot.Interpreter do
-  alias Churrobot.Counter
+  alias Churrobot.Repo
+  alias Churrobot.Schemas
+  alias Churrobot.Schemas.{Counts, History}
 
   def interpret(message = %{type: "message"}, slack) do
     if mentions_me?(message, slack) do
@@ -39,8 +41,8 @@ defmodule Churrobot.Interpreter do
 
   defp perform("show all", _) do
     text =
-      Counter.get_all()
-      |> Enum.map(fn {k, v} -> "<@#{k}> has #{v} #{inflect("churro", v)}" end)
+      Schemas.get_all_counts()
+      |> Enum.map(&"<@#{&1.person_id}> has #{&1.churros} #{inflect("churro", &1.churros)}")
       |> Enum.join("\n")
 
     if "" == text do
@@ -55,7 +57,8 @@ defmodule Churrobot.Interpreter do
   end
 
   defp perform("show", %{user: user}) do
-    {:ok, "Show stuff for <@#{user}>!"}
+    counts = Schemas.get_counts(user)
+    {:ok, "<@#{counts.person_id}> has #{counts.churros} #{inflect("churro", counts.churros)}"}
   end
 
   defp perform("give" <> rest, %{user: user}) do
@@ -72,10 +75,21 @@ defmodule Churrobot.Interpreter do
     if from == to do
       {:ok, "Hey look, <@#{from}> tried to give themself churros!"}
     else
-      result = Counter.credit(to, String.to_integer(amount))
+      History.creation_changeset(%{
+        mentioned_by_id: from,
+        mentioned_id: to,
+        amount: amount
+      })
+      |> Repo.insert!()
+
+      counts =
+        Schemas.get_counts(to)
+        |> Counts.give_changeset(String.to_integer(amount))
+        |> Repo.insert_or_update!()
 
       {:ok,
-       "<@#{from}> gave <@#{to}> #{amount} #{inflect("churro", result)}, they now have #{result}!"}
+       "<@#{from}> gave <@#{to}> #{amount} #{inflect("churro", counts.churros)}, " <>
+         "they now have #{counts.churros}!"}
     end
   end
 

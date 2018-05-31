@@ -12,15 +12,13 @@ defmodule Churrobot.Application do
 
   defp children(:test) do
     [
-      Churrobot.Repo,
-      {Churrobot.Counter, %{}}
+      Churrobot.Repo
     ]
   end
 
   defp children(_) do
     [
       Churrobot.Repo,
-      {Churrobot.Counter, %{}},
       %{
         id: Slack.Bot,
         start: {Slack.Bot, :start_link, [Churrobot.Bot, [], slack_token()]}

@@ -18,12 +18,10 @@ use Mix.Config
 #
 #     config :logger, level: :info
 #
-config :churrobot, Churrobot.Bot,
-  token: System.get_env("SLACK_TOKEN")
+config :churrobot, Churrobot.Bot, token: System.get_env("SLACK_TOKEN")
 
 config :churrobot, ecto_repos: [Churrobot.Repo]
 
-config :churrobot, Churrobot.Repo,
-  adapter: Ecto.Adapters.Postgres
+config :churrobot, Churrobot.Repo, adapter: Ecto.Adapters.Postgres
 
 import_config "#{Mix.env()}.exs"

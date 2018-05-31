@@ -33,8 +33,11 @@ defmodule Churrobot.InterpreterTest do
 
   test "help command", %{message: message, slack: slack} do
     message = %{message | text: "<@BOT> help"}
-    result = Interpreter.interpret(message, slack)
-    assert {:ok, ""} = result
+    assert {:ok, output} = Interpreter.interpret(message, slack)
+    assert output =~ ~r/show all/
+    assert output =~ ~r/show me/
+    assert output =~ ~r/show @user/
+    assert output =~ ~r/give @user/
   end
 
   test "show all command empty", %{message: message, slack: slack} do
@@ -44,38 +47,58 @@ defmodule Churrobot.InterpreterTest do
   end
 
   test "show all command with entries", %{message: message, slack: slack} do
-    message = %{message | text: "<@BOT> show all"}
-    result = Interpreter.interpret(message, slack)
+    Interpreter.interpret(%{message | text: "<@BOT> give <@BAR> 10"}, slack)
+    Interpreter.interpret(%{message | text: "<@BOT> give <@BAZ> 1"}, slack)
+    Interpreter.interpret(%{message | text: "<@BOT> give <@FLUB> 49"}, slack)
+    Interpreter.interpret(%{message | text: "<@BOT> give <@BAR> 5"}, slack)
+    Interpreter.interpret(%{message | text: "<@BOT> give <@FOO> 5"}, slack)
+    Interpreter.interpret(%{message | text: "<@BOT> give <@FLUB> 1"}, slack)
+    Interpreter.interpret(%{message | text: "<@BOT> give <@GOO> 25"}, slack)
 
-    assert {:ok,
-            ~s"""
-            <@FOO> has 5 churros
-            <@BAR> has 15 churros
-            <@BAZ> has 1 churro
-            """} = result
+    assert {:ok, output} = Interpreter.interpret(%{message | text: "<@BOT> show all"}, slack)
+
+    output =
+      output
+      |> String.trim()
+      |> String.split("\n")
+      |> Enum.sort()
+
+    expected =
+      """
+      <@FOO> has 5 churros
+      <@BAR> has 15 churros
+      <@BAZ> has 1 churro
+      <@FLUB> has 50 churros
+      <@GOO> has 25 churros
+      """
+      |> String.trim()
+      |> String.split("\n")
+      |> Enum.sort()
+
+    assert expected == output
   end
 
   test "show command empty", %{message: message, slack: slack} do
     message = %{message | text: "<@BOT> show"}
     result = Interpreter.interpret(message, slack)
-    assert {:ok, "<@USER> has no churros"} = result
+    assert {:ok, "<@USER> has 0 churros"} = result
   end
 
   test "show command with entries", %{message: message, slack: slack} do
-    message = %{message | text: "<@BOT> show"}
-    result = Interpreter.interpret(message, slack)
+    Interpreter.interpret(%{message | text: "<@BOT> give <@USER> 10", user: "OTHER"}, slack)
+    result = Interpreter.interpret(%{message | text: "<@BOT> show"}, slack)
     assert {:ok, "<@USER> has 10 churros"} = result
   end
 
   test "show me command empty", %{message: message, slack: slack} do
     message = %{message | text: "<@BOT> show me"}
     result = Interpreter.interpret(message, slack)
-    assert {:ok, "<@USER> has no churros"} = result
+    assert {:ok, "<@USER> has 0 churros"} = result
   end
 
   test "show me command with entries", %{message: message, slack: slack} do
-    message = %{message | text: "<@BOT> show me"}
-    result = Interpreter.interpret(message, slack)
+    Interpreter.interpret(%{message | text: "<@BOT> give <@USER> 7", user: "OTHER"}, slack)
+    result = Interpreter.interpret(%{message | text: "<@BOT> show me"}, slack)
     assert {:ok, "<@USER> has 7 churros"} = result
   end
 
