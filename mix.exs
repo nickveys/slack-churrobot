@@ -7,6 +7,7 @@ defmodule Churrobot.MixProject do
       version: "0.1.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
+      aliases: aliases(),
       deps: deps()
     ]
   end
@@ -27,5 +28,10 @@ defmodule Churrobot.MixProject do
       {:inflex, "~> 1.10"},
       {:slack, "~> 0.12"}
     ]
+  end
+
+  # Aliases are shortcuts or tasks specific to the current project.
+  defp aliases do
+    [test: ["ecto.create --quiet", "ecto.migrate", "test"]]
   end
 end

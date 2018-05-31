@@ -1,10 +1,11 @@
 defmodule Churrobot.InterpreterTest do
-  # , async: true
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   alias Churrobot.Interpreter
   doctest Interpreter
 
   setup do
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Churrobot.Repo)
+
     message = %{
       text: "",
       type: "message",
@@ -82,17 +83,17 @@ defmodule Churrobot.InterpreterTest do
     message = %{message | text: "<@BOT> give <@OTHER> 25"}
     result = Interpreter.interpret(message, slack)
     expected = "<@USER> gave <@OTHER> 25 churros, they now have 25!"
-    assert {:ok, expected} = result
+    assert {:ok, ^expected} = result
   end
 
   test "give command multiple times", %{message: message, slack: slack} do
     message = %{message | text: "<@BOT> give <@OTHER> 25"}
-    result = Interpreter.interpret(message, slack)
-    result = Interpreter.interpret(message, slack)
-    result = Interpreter.interpret(message, slack)
+    Interpreter.interpret(message, slack)
+    Interpreter.interpret(message, slack)
+    Interpreter.interpret(message, slack)
     result = Interpreter.interpret(message, slack)
     expected = "<@USER> gave <@OTHER> 25 churros, they now have 100!"
-    assert {:ok, expected} = result
+    assert {:ok, ^expected} = result
   end
 
   test "give to self command", %{message: message, slack: slack} do

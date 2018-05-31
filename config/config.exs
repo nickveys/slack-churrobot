@@ -21,6 +21,8 @@ use Mix.Config
 config :churrobot, Churrobot.Bot,
   token: System.get_env("SLACK_TOKEN")
 
+config :churrobot, ecto_repos: [Churrobot.Repo]
+
 config :churrobot, Churrobot.Repo,
   adapter: Ecto.Adapters.Postgres
 

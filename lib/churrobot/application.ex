@@ -12,12 +12,14 @@ defmodule Churrobot.Application do
 
   defp children(:test) do
     [
+      Churrobot.Repo,
       {Churrobot.Counter, %{}}
     ]
   end
 
   defp children(_) do
     [
+      Churrobot.Repo,
       {Churrobot.Counter, %{}},
       %{
         id: Slack.Bot,

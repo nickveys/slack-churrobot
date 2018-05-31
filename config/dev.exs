@@ -4,4 +4,5 @@ config :churrobot, Churrobot.Repo,
   username: "postgres",
   password: "postgres",
   database: "churrobot_dev",
-  hostname: "localhost"
+  hostname: "localhost",
+  pool_size: 10
