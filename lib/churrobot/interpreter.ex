@@ -31,7 +31,7 @@ defmodule Churrobot.Interpreter do
 
   defp perform("help", _) do
     {:ok,
-     ~s"""
+     """
      `show all` - show everyone's churros
      `show me`, `show` - show your own churros
      `show @user` - show a specific user's churros
